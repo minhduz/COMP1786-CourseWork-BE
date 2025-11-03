@@ -33,6 +33,7 @@ const validateCreateObservation = (req, res, next) => {
   // Validate observation type if provided
   const validTypes = [
     "Wildlife",
+    "Landscape",
     "Vegetation",
     "Weather",
     "Trail Condition",
@@ -109,6 +110,7 @@ const validateUpdateObservation = (req, res, next) => {
   if (observationType) {
     const validTypes = [
       "Wildlife",
+      "Landscape",
       "Vegetation",
       "Weather",
       "Trail Condition",
@@ -159,6 +161,9 @@ const validateUpdateObservation = (req, res, next) => {
 
   next();
 };
+
+// Get my observations - authenticated user's observations only
+router.get("/observations/my", observationController.getMyObservations);
 
 // Create observation - ANYONE can add observations to any hike
 router.post(

@@ -213,4 +213,7 @@ router.put("/:hikeId", validateUpdateHike, hikeController.updateHike);
 // Delete hike
 router.delete("/:hikeId", hikeController.deleteHike);
 
+// Search ALL hikes by name (from all users)
+router.get("/search/all/name", hikeController.searchAllHikesByName);
+
 module.exports = router;

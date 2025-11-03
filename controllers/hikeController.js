@@ -426,3 +426,54 @@ exports.advancedSearchHikes = async (req, res) => {
     res.status(500).json({ error: "Failed to search hikes" });
   }
 };
+
+// Search ALL hikes by name (from all users, excluding current user's hikes)
+exports.searchAllHikesByName = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { name } = req.query;
+
+    if (!name || name.trim().length === 0) {
+      return res.status(400).json({ error: "Search query is required" });
+    }
+
+    const searchQuery = `%${name}%`;
+    const hikes = db
+      .prepare(
+        `SELECT h.*, u.username, u.avatar, u.email
+       FROM hikes h
+       LEFT JOIN users u ON h.user_id = u.user_id
+       WHERE h.user_id != ? AND h.name LIKE ?
+       ORDER BY h.created_at DESC`
+      )
+      .all(userId, searchQuery);
+
+    res.json({
+      count: hikes.length,
+      hikes: hikes.map((h) => ({
+        hikeId: h.hike_id,
+        userId: h.user_id,
+        name: h.name,
+        location: h.location,
+        hikeDate: h.hike_date,
+        parkingAvailable: h.parking_available === 1,
+        length: h.length,
+        difficultyLevel: h.difficulty_level,
+        description: h.description,
+        estimatedDuration: h.estimated_duration,
+        elevationGain: h.elevation_gain,
+        trailType: h.trail_type,
+        equipmentNeeded: h.equipment_needed,
+        weatherConditions: h.weather_conditions,
+        username: h.username,
+        userAvatar: h.avatar,
+        userEmail: h.email,
+        createdAt: h.created_at,
+        updatedAt: h.updated_at,
+      })),
+    });
+  } catch (error) {
+    console.error("Search all hikes by name error:", error);
+    res.status(500).json({ error: "Failed to search hikes" });
+  }
+};

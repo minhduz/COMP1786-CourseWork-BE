@@ -386,3 +386,32 @@ exports.uploadAvatar = async (req, res) => {
     res.status(500).json({ error: "Failed to upload avatar" });
   }
 };
+
+// Get user info by username (public profile)
+exports.getUserByUsername = async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    const user = db
+      .prepare(
+        "SELECT user_id, username, email, phone, avatar, created_at FROM users WHERE username = ? AND is_active = 1"
+      )
+      .get(username);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({
+      userId: user.user_id,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      avatar: user.avatar,
+      createdAt: user.created_at,
+    });
+  } catch (error) {
+    console.error("Get user by username error:", error);
+    res.status(500).json({ error: "Failed to fetch user information" });
+  }
+};

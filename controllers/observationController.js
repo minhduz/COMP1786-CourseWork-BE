@@ -185,9 +185,6 @@ exports.getObservationById = async (req, res) => {
 exports.updateObservation = async (req, res) => {
   let uploadedFilePath = null;
 
-  console.log("Body:", req.body);
-  console.log("File:", req.file);
-
   try {
     const userId = req.user.userId;
     const { observationId } = req.params;
@@ -342,5 +339,49 @@ exports.deleteObservation = async (req, res) => {
   } catch (error) {
     console.error("Delete observation error:", error);
     res.status(500).json({ error: "Failed to delete observation" });
+  }
+};
+
+// Get all observations by the authenticated user
+exports.getMyObservations = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const observations = db
+      .prepare(
+        `SELECT o.*, u.username, u.avatar, u.email, h.name as hike_name, h.location as hike_location
+       FROM observations o
+       LEFT JOIN users u ON o.user_id = u.user_id
+       LEFT JOIN hikes h ON o.hike_id = h.hike_id
+       WHERE o.user_id = ?
+       ORDER BY o.observation_time DESC`
+      )
+      .all(userId);
+
+    res.json({
+      count: observations.length,
+      observations: observations.map((o) => ({
+        observationId: o.observation_id,
+        hikeId: o.hike_id,
+        userId: o.user_id,
+        observation: o.observation,
+        observationTime: o.observation_time,
+        comments: o.comments,
+        observationType: o.observation_type,
+        photoUrl: o.photo_url,
+        latitude: o.latitude,
+        longitude: o.longitude,
+        username: o.username,
+        userAvatar: o.avatar,
+        userEmail: o.email,
+        hikeName: o.hike_name,
+        hikeLocation: o.hike_location,
+        createdAt: o.created_at,
+        updatedAt: o.updated_at,
+      })),
+    });
+  } catch (error) {
+    console.error("Get my observations error:", error);
+    res.status(500).json({ error: "Failed to fetch observations" });
   }
 };

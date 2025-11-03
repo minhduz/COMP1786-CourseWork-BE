@@ -104,6 +104,13 @@ router.post(
 // Get profile (protected)
 router.get("/profile", authenticateToken, authController.getProfile);
 
+// Get user by username (public)
+router.get(
+  "/users/:username",
+  authenticateToken,
+  authController.getUserByUsername
+);
+
 // Update profile - ONLY email, phone, and avatar
 router.put(
   "/profile",
